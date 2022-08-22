@@ -1,5 +1,5 @@
 import React from 'react';
-import {FormattedMessage} from 'localization';
+import {FormattedMessage} from '../../../localization';
 import {Tooltip} from 'components/common/styled-components';
 import IconButton from '../icon-button';
 
