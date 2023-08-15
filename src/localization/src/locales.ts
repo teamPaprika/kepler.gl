@@ -19,6 +19,7 @@
 // THE SOFTWARE.
 
 export const LOCALES = {
+  ko: 'Korean',
   en: 'English',
   fi: 'Suomi',
   pt: 'Português',
