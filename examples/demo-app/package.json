@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "start": "webpack-dev-server --mode development --progress --hot --open",
+    "start": "export MapboxAccessToken=pk.eyJ1IjoieWFuZ2Jvb20iLCJhIjoiY2xndTlkZ2FhMXJ0MDN1bXJmNmMyMG1tOSJ9.ptu_P_KFfnqyHgJK_Y6MEw  && webpack-dev-server --mode development --progress --hot --open",
     "start-prod": "webpack-dev-server -p --progress --hot --open",
     "start-local": "webpack-dev-server --mode development --env.es6 --progress --hot --open",
     "start-local-e2e": "webpack-dev-server --mode development --env.es6",
