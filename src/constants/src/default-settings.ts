@@ -315,7 +315,8 @@ export const DEFAULT_MAP_STYLES: {
   {
     id: 'dark',
     label: 'Dark',
-    url: 'mapbox://styles/uberdata/cjoqbbf6l9k302sl96tyvka09',
+    // url: 'mapbox://styles/uberdata/cjoqbbf6l9k302sl96tyvka09',
+    url: 'mapbox://styles/mapbox/dark-v11',
     icon: `${BASEMAP_ICON_PREFIX}/UBER_DARK_V2.png`,
     layerGroups: DEFAULT_LAYER_GROUPS,
     colorMode: BASE_MAP_COLOR_MODES.DARK,
@@ -324,25 +325,26 @@ export const DEFAULT_MAP_STYLES: {
   {
     id: 'light',
     label: 'Light',
-    url: 'mapbox://styles/uberdata/cjoqb9j339k1f2sl9t5ic5bn4',
+    // url: 'mapbox://styles/uberdata/cjoqb9j339k1f2sl9t5ic5bn4',
+    url: 'mapbox://styles/mapbox/light-v11',
     icon: `${BASEMAP_ICON_PREFIX}/UBER_LIGHT_V2.png`,
     layerGroups: DEFAULT_LAYER_GROUPS,
     colorMode: BASE_MAP_COLOR_MODES.LIGHT,
     complimentaryStyleId: 'dark'
   },
+  // {
+  //   id: 'muted',
+  //   label: 'Muted Light',
+  //   url: 'mapbox://styles/uberdata/cjfyl03kp1tul2smf5v2tbdd4',
+  //   icon: `${BASEMAP_ICON_PREFIX}/UBER_MUTED_LIGHT.png`,
+  //   layerGroups: DEFAULT_LAYER_GROUPS,
+  //   colorMode: BASE_MAP_COLOR_MODES.LIGHT,
+  //   complimentaryStyleId: 'muted_night'
+  // },
   {
-    id: 'muted',
-    label: 'Muted Light',
-    url: 'mapbox://styles/uberdata/cjfyl03kp1tul2smf5v2tbdd4',
-    icon: `${BASEMAP_ICON_PREFIX}/UBER_MUTED_LIGHT.png`,
-    layerGroups: DEFAULT_LAYER_GROUPS,
-    colorMode: BASE_MAP_COLOR_MODES.LIGHT,
-    complimentaryStyleId: 'muted_night'
-  },
-  {
-    id: 'muted_night',
-    label: 'Muted Night',
-    url: 'mapbox://styles/uberdata/cjfxhlikmaj1b2soyzevnywgs',
+    id: 'outdoors',
+    label: 'Outdoors',
+    url: 'mapbox://styles/mapbox/outdoors-v12',
     icon: `${BASEMAP_ICON_PREFIX}/UBER_MUTED_NIGHT.png`,
     layerGroups: DEFAULT_LAYER_GROUPS,
     colorMode: BASE_MAP_COLOR_MODES.DARK,
