@@ -49,6 +49,9 @@ const KeplerGl = require('@kepler.gl/components').injectComponents([
   replacePanelHeader()
 ]);
 
+console.log(replacePanelHeader()[1]);
+
+
 // Sample data
 /* eslint-disable no-unused-vars */
 import sampleTripData, {testCsvData, sampleTripDataConfig} from './data/sample-trip-data';

@@ -80,8 +80,8 @@
     "lint": "yarn typescript && eslint src test webpack examples website --fix --ignore-path .gitignore --ext .js,.ts,.tsx",
     "lint:css": "stylelint './src/**/*.js'",
     "typescript": "tsc --noEmit",
-    "web": "(yarn && yarn install:web && yarn start:web)",
-    "deploy": "yarn install:web && (cd website && yarn build)",
+    "web": "(PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true yarn && yarn install:web && yarn start:web)",
+    "deploy": "export MapboxAccessToken=pk.eyJ1IjoieWFuZ2Jvb20iLCJhIjoiY2xndTlkZ2FhMXJ0MDN1bXJmNmMyMG1tOSJ9.ptu_P_KFfnqyHgJK_Y6MEw && yarn install:web && (cd website && yarn build)",
     "clean": "rm -rf node_modules examples/**/node_modules website/node_modules",
     "release:patch": "git add CHANGELOG.md && git commit -m 'updated CHANGELOG.md' && npm version patch && git push origin && git push origin --tags"
   },

@@ -20,6 +20,22 @@
 
 // Add english messages here, other languages will use these
 // if translations not available for every message
+const kr = {
+  'modal.loadData.remote': 'URL을 사용하여 지도 불러오기',
+  'sampleMapsTab.noData': '데이터가 없으신가요?',
+  'sampleMapsTab.trySampleData': '자신의 데이터 사용하기',
+  'sampleDataViewer.rowCount': ' {rowCount} 행',
+  'loadRemoteMap.description': '사용자 정의 URL을 사용하여 지도 불러오기',
+  'loadRemoteMap.message':
+    '다음 형식을 사용할 수 있습니다: CSV | JSON | Kepler.gl config json. URL에 파일 확장자가 포함되어 있는지 확인하십시오.',
+  'loadRemoteMap.examples': '예시:',
+  'loadRemoteMap.cors':
+    '* 사용자 정의 URL 도메인에 CORS 정책이 정의되어 있어야 액세스할 수 있습니다. 자세한 정보는 ',
+  'loadRemoteMap.clickHere':
+    '<a rel="noopener noreferrer" target="_blank" href="{corsLink}">여기를 클릭하세요</a>',
+  'loadRemoteMap.fetch': '가져오기'
+};
+
 const en = {
   'modal.loadData.remote': 'Load Map using URL',
   'sampleMapsTab.noData': 'No data ?',
@@ -38,6 +54,7 @@ const en = {
 
 export const messages = {
   en,
+  kr,
   fi: {
     'modal.loadData.remote': 'Lataa kartta URL-osoitteen avulla',
     'sampleMapsTab.noData': 'Ei aineistoja?',

@@ -8,7 +8,8 @@
     "start-local-deck-src": "webpack-dev-server --mode development --env.es6 --env.deck_src --progress --hot --open",
     "start-local-loaders-src": "webpack-dev-server --mode development --env.es6 --env.loaders_src --progress --hot --open",
     "start-local-hubble-src": "webpack-dev-server --mode development --env.es6 --env.hubble_src --progress --hot --open",
-    "start-local-https": "webpack-dev-server --mode development --https --env.es6 --progress --hot --open"
+    "start-local-https": "webpack-dev-server --mode development --https --env.es6 --progress --hot --open",
+    "build": "export MapboxAccessToken=pk.eyJ1IjoieWFuZ2Jvb20iLCJhIjoiY2xndTlkZ2FhMXJ0MDN1bXJmNmMyMG1tOSJ9.ptu_P_KFfnqyHgJK_Y6MEw  && export MapboxExportToken=pk.eyJ1IjoieWFuZ2Jvb20iLCJhIjoiY2xndTlkZ2FhMXJ0MDN1bXJmNmMyMG1tOSJ9.ptu_P_KFfnqyHgJK_Y6MEw  &&  webpack --mode production --env.es6"
   },
   "dependencies": {
     "@carto/toolkit": "0.0.1-rc.18",
@@ -51,7 +52,7 @@
     "webpack-hot-middleware": "^2.24.3"
   },
   "resolutions": {
-    "@luma.gl/webgl": "8.5.16",
+    "@luma.gl/webgl": "8.5.20",
     "@deck.gl/core": "8.8.9",
     "@deck.gl/extensions": "8.8.9",
     "react-vis": "1.11.7"

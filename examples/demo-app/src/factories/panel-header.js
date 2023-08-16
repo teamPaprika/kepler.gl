@@ -17,7 +17,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-
+import React from 'react';
 import {PanelHeaderFactory, Icons} from '@kepler.gl/components';
 import {BUG_REPORT_LINK, USER_GUIDE_DOC} from '@kepler.gl/constants';
 
@@ -26,24 +26,26 @@ export function CustomPanelHeaderFactory(...deps) {
   const defaultActionItems = PanelHeader.defaultProps.actionItems;
   PanelHeader.defaultProps = {
     ...PanelHeader.defaultProps,
+    appName: 'WEB-GIS',
+    logoComponent: () => <img src={'https://i.ibb.co/JqhHmcs/Group-1000001417.png'} />,
     actionItems: [
-      {
-        id: 'bug',
-        iconComponent: Icons.Bug,
-        href: BUG_REPORT_LINK,
-        blank: true,
-        tooltip: 'Bug Report',
-        onClick: () => {}
-      },
-      {
-        id: 'docs',
-        iconComponent: Icons.Docs,
-        href: USER_GUIDE_DOC,
-        blank: true,
-        tooltip: 'User Guide',
-        onClick: () => {}
-      },
-      defaultActionItems.find(item => item.id === 'storage'),
+      // {
+      //   id: 'bug',
+      //   iconComponent: Icons.Bug,
+      //   href: BUG_REPORT_LINK,
+      //   blank: true,
+      //   tooltip: 'Bug Report',
+      //   onClick: () => {}
+      // },
+      // {
+      //   id: 'docs',
+      //   iconComponent: Icons.Docs,
+      //   href: USER_GUIDE_DOC,
+      //   blank: true,
+      //   tooltip: 'User Guide',
+      //   onClick: () => {}
+      // },
+      // defaultActionItems.find(item => item.id === 'storage'),
       {
         ...defaultActionItems.find(item => item.id === 'save'),
         label: null,

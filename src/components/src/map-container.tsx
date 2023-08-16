@@ -19,27 +19,27 @@
 // THE SOFTWARE.
 
 // libraries
-import React, {Component, createRef, useMemo} from 'react';
-import styled, {withTheme} from 'styled-components';
-import {StaticMap, MapRef} from 'react-map-gl';
-import {PickInfo} from '@deck.gl/core/lib/deck';
-import DeckGL from '@deck.gl/react';
-import {createSelector, Selector} from 'reselect';
-import mapboxgl from 'mapbox-gl';
-import {useDroppable} from '@dnd-kit/core';
+import React, { Component, createRef, useEffect, useMemo } from "react";
+import styled, { withTheme } from "styled-components";
+import { StaticMap, MapRef } from "react-map-gl";
+import { PickInfo } from "@deck.gl/core/lib/deck";
+import DeckGL from "@deck.gl/react";
+import { createSelector, Selector } from "reselect";
+import mapboxgl from "mapbox-gl";
+import { useDroppable } from "@dnd-kit/core";
 
-import {VisStateActions, MapStateActions, UIStateActions} from '@kepler.gl/actions';
+import { VisStateActions, MapStateActions, UIStateActions } from "@kepler.gl/actions";
 
 // components
-import MapPopoverFactory from './map/map-popover';
-import MapControlFactory from './map/map-control';
+import MapPopoverFactory from "./map/map-popover";
+import MapControlFactory from "./map/map-control";
 import {
   StyledMapContainer,
   StyledAttrbution,
   EndHorizontalFlexbox
-} from './common/styled-components';
+} from "./common/styled-components";
 
-import EditorFactory from './editor/editor';
+import EditorFactory from "./editor/editor";
 
 // utils
 import {
@@ -48,8 +48,8 @@ import {
   LayerBaseConfig,
   VisualChannelDomain,
   EditorLayerUtils
-} from '@kepler.gl/layers';
-import {MapState, MapControls, Viewport, SplitMap, SplitMapLayers} from '@kepler.gl/types';
+} from "@kepler.gl/layers";
+import { MapState, MapControls, Viewport, SplitMap, SplitMapLayers } from "@kepler.gl/types";
 import {
   errorNotification,
   setLayerBlending,
@@ -63,8 +63,8 @@ import {
   getViewportFromMapState,
   normalizeEvent,
   rgbToHex
-} from '@kepler.gl/utils';
-import {breakPointValues} from '@kepler.gl/styles';
+} from "@kepler.gl/utils";
+import { breakPointValues } from "@kepler.gl/styles";
 
 // default-settings
 import {
@@ -74,12 +74,12 @@ import {
   DEFAULT_PICKING_RADIUS,
   NO_MAP_ID,
   EMPTY_MAPBOX_STYLE
-} from '@kepler.gl/constants';
+} from "@kepler.gl/constants";
 
-import ErrorBoundary from './common/error-boundary';
-import {DatasetAttribution} from './types';
-import {LOCALE_CODES} from '@kepler.gl/localization';
-import {MapView} from '@deck.gl/core';
+import ErrorBoundary from "./common/error-boundary";
+import { DatasetAttribution } from "./types";
+import { LOCALE_CODES } from "@kepler.gl/localization";
+import { MapView } from "@deck.gl/core";
 import {
   MapStyle,
   computeDeckLayers,
@@ -88,23 +88,23 @@ import {
   prepareLayersForDeck,
   prepareLayersToRender,
   LayersToRender
-} from '@kepler.gl/reducers';
-import {VisState} from '@kepler.gl/schemas';
+} from "@kepler.gl/reducers";
+import { VisState } from "@kepler.gl/schemas";
 
 /** @type {{[key: string]: React.CSSProperties}} */
-const MAP_STYLE: {[key: string]: React.CSSProperties} = {
+const MAP_STYLE: { [key: string]: React.CSSProperties } = {
   container: {
-    display: 'inline-block',
-    position: 'relative',
-    width: '100%',
-    height: '100%'
+    display: "inline-block",
+    position: "relative",
+    width: "100%",
+    height: "100%"
   },
   top: {
-    position: 'absolute',
-    top: '0px',
-    pointerEvents: 'none',
-    width: '100%',
-    height: '100%'
+    position: "absolute",
+    top: "0px",
+    pointerEvents: "none",
+    width: "100%",
+    height: "100%"
   }
 };
 
@@ -115,16 +115,17 @@ interface StyledMapContainerProps {
 }
 
 const StyledMap = styled(StyledMapContainer)<StyledMapContainerProps>(
-  ({mixBlendMode = 'normal'}) => `
+  ({ mixBlendMode = "normal" }) => `
   .overlays {
     mix-blend-mode: ${mixBlendMode};
   };
 `
 );
 
-const MAPBOXGL_STYLE_UPDATE = 'style.load';
-const MAPBOXGL_RENDER = 'render';
-const nop = () => {};
+const MAPBOXGL_STYLE_UPDATE = "style.load";
+const MAPBOXGL_RENDER = "render";
+const nop = () => {
+};
 
 const MapboxLogo = () => (
   <div className="attrition-logo">
@@ -144,7 +145,7 @@ interface StyledDroppableProps {
 }
 
 const StyledDroppable = styled.div<StyledDroppableProps>`
-  background-color: ${props => (props.isOver ? props.theme.dndOverBackgroundColor : 'none')};
+  background-color: ${props => (props.isOver ? props.theme.dndOverBackgroundColor : "none")};
   width: 100%;
   height: 100%;
   position: absolute;
@@ -155,10 +156,10 @@ const StyledDroppable = styled.div<StyledDroppableProps>`
 export const isSplitSelector = props =>
   props.visState.splitMaps && props.visState.splitMaps.length > 1;
 
-export const Droppable = ({containerId}) => {
-  const {isOver, setNodeRef} = useDroppable({
+export const Droppable = ({ containerId }) => {
+  const { isOver, setNodeRef } = useDroppable({
     id: containerId,
-    data: {type: 'map', index: containerId}
+    data: { type: "map", index: containerId }
   });
 
   return <StyledDroppable ref={setNodeRef} isOver={isOver} />;
@@ -169,22 +170,23 @@ interface StyledDatasetAttributionsContainerProps {
 }
 
 const StyledDatasetAttributionsContainer = styled.div<StyledDatasetAttributionsContainerProps>`
-  max-width: ${props => (props.isPalm ? '130px' : '180px')};
+  max-width: ${props => (props.isPalm ? "130px" : "180px")};
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
   color: ${props => props.theme.labelColor};
   margin-right: 2px;
-  line-height: ${props => (props.isPalm ? '1em' : '1.4em')};
+  line-height: ${props => (props.isPalm ? "1em" : "1.4em")};
+
   :hover {
     white-space: inherit;
   }
 `;
 
 const DatasetAttributions = ({
-  datasetAttributions,
-  isPalm
-}: {
+                               datasetAttributions,
+                               isPalm
+                             }: {
   datasetAttributions: DatasetAttribution[];
   isPalm: boolean;
 }) => (
@@ -194,7 +196,7 @@ const DatasetAttributions = ({
         {datasetAttributions.map((ds, idx) => (
           <a href={ds.url} target="_blank" rel="noopener noreferrer" key={`${ds.title}_${idx}`}>
             {ds.title}
-            {idx !== datasetAttributions.length - 1 ? ', ' : null}
+            {idx !== datasetAttributions.length - 1 ? ", " : null}
           </a>
         ))}
       </StyledDatasetAttributionsContainer>
@@ -206,7 +208,7 @@ export const Attribution: React.FC<{
   showMapboxLogo: boolean;
   showOsmBasemapAttribution: boolean;
   datasetAttributions: DatasetAttribution[];
-}> = ({showMapboxLogo = true, showOsmBasemapAttribution = false, datasetAttributions}) => {
+}> = ({ showMapboxLogo = true, showOsmBasemapAttribution = false, datasetAttributions }) => {
   const isPalm = hasMobileWidth(breakPointValues);
 
   const memoizedComponents = useMemo(() => {
@@ -240,10 +242,10 @@ export const Attribution: React.FC<{
             {datasetAttributions?.length ? <span className="pipe-separator">|</span> : null}
             {isPalm ? <MapboxLogo /> : null}
             <a href="https://kepler.gl/policy/" target="_blank" rel="noopener noreferrer">
-              © kepler.gl |{' '}
+              © kepler.gl |{" "}
             </a>
             <a href="https://www.mapbox.com/about/maps/" target="_blank" rel="noopener noreferrer">
-              © Mapbox |{' '}
+              © Mapbox |{" "}
             </a>
             <a
               href="https://www.mapbox.com/map-feedback/"
@@ -272,7 +274,7 @@ export interface MapContainerProps {
   visState: VisState;
   mapState: MapState;
   mapControls: MapControls;
-  mapStyle: {bottomMapStyle?: MapboxStyle; topMapStyle?: MapboxStyle} & MapStyle;
+  mapStyle: { bottomMapStyle?: MapboxStyle; topMapStyle?: MapboxStyle } & MapStyle;
   mapboxApiAccessToken: string;
   mapboxApiUrl: string;
   visStateActions: typeof VisStateActions;
@@ -315,7 +317,7 @@ export default function MapContainerFactory(
   Editor: ReturnType<typeof EditorFactory>
 ): React.ComponentType<MapContainerProps> {
   class MapContainer extends Component<MapContainerProps> {
-    displayName = 'MapContainer';
+    displayName = "MapContainer";
     static defaultProps = {
       MapComponent: StaticMap,
       deckGlProps: {},
@@ -336,6 +338,8 @@ export default function MapContainerFactory(
       if (!this._ref.current) {
         return;
       }
+      const { uiStateActions } = this.props;
+      uiStateActions.setLocale('ko');
       observeDimensions(this._ref.current, this._handleResize);
     }
 
@@ -354,24 +358,24 @@ export default function MapContainerFactory(
     _deck: any = null;
     _map: mapboxgl.Map | null = null;
     _ref = createRef<HTMLDivElement>();
-    _deckGLErrorsElapsed: {[id: string]: number} = {};
+    _deckGLErrorsElapsed: { [id: string]: number } = {};
 
     previousLayers = {
       // [layers.id]: mapboxLayerConfig
     };
 
     _handleResize = dimensions => {
-      const {primary, index} = this.props;
+      const { primary, index } = this.props;
       if (primary) {
-        const {mapStateActions} = this.props;
+        const { mapStateActions } = this.props;
         if (dimensions && dimensions.width > 0 && dimensions.height > 0) {
           mapStateActions.updateMap(dimensions, index);
         }
       }
     };
 
-    layersSelector: PropSelector<VisState['layers']> = props => props.visState.layers;
-    layerDataSelector: PropSelector<VisState['layers']> = props => props.visState.layerData;
+    layersSelector: PropSelector<VisState["layers"]> = props => props.visState.layers;
+    layerDataSelector: PropSelector<VisState["layers"]> = props => props.visState.layerData;
     splitMapSelector: PropSelector<SplitMap[]> = props => props.visState.splitMaps;
     splitMapIndexSelector: PropSelector<number | undefined> = props => props.index;
     mapLayersSelector: PropSelector<SplitMapLayers | null | undefined> = createSelector(
@@ -379,7 +383,7 @@ export default function MapContainerFactory(
       this.splitMapIndexSelector,
       getMapLayersFromSplitMaps
     );
-    layerOrderSelector: PropSelector<VisState['layerOrder']> = props => props.visState.layerOrder;
+    layerOrderSelector: PropSelector<VisState["layerOrder"]> = props => props.visState.layerOrder;
     layersToRenderSelector: PropSelector<LayersToRender> = createSelector(
       this.layersSelector,
       this.layerDataSelector,
@@ -401,7 +405,7 @@ export default function MapContainerFactory(
       this.polygonFiltersSelector,
       this.featuresSelector,
       (polygonFilters, features) => ({
-        type: 'FeatureCollection',
+        type: "FeatureCollection",
         features: features.concat(polygonFilters.map(f => f.value))
       })
     );
@@ -439,7 +443,7 @@ export default function MapContainerFactory(
       this.mapStyleBackgroundColorSelector,
       (styleType, backgroundColor) => ({
         ...MAP_STYLE.container,
-        ...(styleType === NO_MAP_ID ? {backgroundColor: rgbToHex(backgroundColor)} : {})
+        ...(styleType === NO_MAP_ID ? { backgroundColor: rgbToHex(backgroundColor) } : {})
       })
     );
 
@@ -459,7 +463,7 @@ export default function MapContainerFactory(
     };
 
     _handleMapToggleLayer = layerId => {
-      const {index: mapIndex = 0, visStateActions} = this.props;
+      const { index: mapIndex = 0, visStateActions } = this.props;
       visStateActions.toggleLayerForMap(mapIndex, layerId);
     };
 
@@ -470,10 +474,10 @@ export default function MapContainerFactory(
 
       if (update && update.style) {
         // No attributions are needed if the style doesn't reference Mapbox sources
-        this.setState({showMapboxAttribution: isStyleUsingMapboxTiles(update.style)});
+        this.setState({ showMapboxAttribution: isStyleUsingMapboxTiles(update.style) });
       }
 
-      if (typeof this.props.onMapStyleLoaded === 'function') {
+      if (typeof this.props.onMapStyleLoaded === "function") {
         this.props.onMapStyleLoaded(this._map);
       }
     };
@@ -489,7 +493,7 @@ export default function MapContainerFactory(
         this._map.on(MAPBOXGL_STYLE_UPDATE, this._onMapboxStyleUpdate);
 
         this._map.on(MAPBOXGL_RENDER, () => {
-          if (typeof this.props.onMapRender === 'function') {
+          if (typeof this.props.onMapRender === "function") {
             this.props.onMapRender(this._map);
           }
         });
@@ -509,16 +513,16 @@ export default function MapContainerFactory(
       }
     }
 
-    _onBeforeRender = ({gl}) => {
+    _onBeforeRender = ({ gl }) => {
       setLayerBlending(gl, this.props.visState.layerBlending);
     };
 
     _onDeckError = (error, layer) => {
-      const errorMessage = error?.message || 'unknown-error';
-      const layerMessage = layer?.id ? ` in ${layer.id} layer` : '';
+      const errorMessage = error?.message || "unknown-error";
+      const layerMessage = layer?.id ? ` in ${layer.id} layer` : "";
       let errorMessageFull =
-        errorMessage === 'WebGL context is lost'
-          ? 'Your GPU was disconnected. This can happen if your computer goes to sleep. It can also occur for other reasons, such as if you are running too many GPU applications.'
+        errorMessage === "WebGL context is lost"
+          ? "Your GPU was disconnected. This can happen if your computer goes to sleep. It can also occur for other reasons, such as if you are running too many GPU applications."
           : `An error in deck.gl: ${errorMessage}${layerMessage}.`;
 
       // Throttle error notifications, as React doesn't like too many state changes from here.
@@ -527,8 +531,8 @@ export default function MapContainerFactory(
         this._deckGLErrorsElapsed[errorMessageFull] = Date.now();
 
         // Mark layer as invalid
-        let extraLayerMessage = '';
-        const {visStateActions} = this.props;
+        let extraLayerMessage = "";
+        const { visStateActions } = this.props;
         if (layer) {
           let topMostLayer = layer;
           while (topMostLayer.parent) {
@@ -536,13 +540,13 @@ export default function MapContainerFactory(
           }
           if (topMostLayer.props?.id) {
             visStateActions.layerSetIsValid(topMostLayer, false);
-            extraLayerMessage = 'The layer has been disabled and highlighted.';
+            extraLayerMessage = "The layer has been disabled and highlighted.";
           }
         }
 
         // Create new error notification or update existing one with same id.
         // Update is required to preserve the order of notifications as they probably are going to "jump" based on order of errors.
-        const {uiStateActions} = this.props;
+        const { uiStateActions } = this.props;
         uiStateActions.addNotification(
           errorNotification({
             message: `${errorMessageFull} ${extraLayerMessage}`,
@@ -571,7 +575,7 @@ export default function MapContainerFactory(
           datasets,
           interactionConfig,
           layers,
-          mousePos: {mousePosition, coordinate, pinned}
+          mousePos: { mousePosition, coordinate, pinned }
         }
       } = this.props;
       const layersToRender = this.layersToRenderSelector(this.props);
@@ -592,7 +596,7 @@ export default function MapContainerFactory(
         ? interactionConfig.tooltip.config.compareMode
         : false;
 
-      let pinnedPosition = {x: 0, y: 0};
+      let pinnedPosition = { x: 0, y: 0 };
       let layerPinnedProp: LayerHoverProp | null = null;
       if (pinned || clicked) {
         // project lnglat to screen so that tooltip follows the object on zoom
@@ -654,10 +658,10 @@ export default function MapContainerFactory(
 
     _getHoverXY(viewport, lngLat) {
       const screenCoord = !viewport || !lngLat ? null : viewport.project(lngLat);
-      return screenCoord && {x: screenCoord[0], y: screenCoord[1]};
+      return screenCoord && { x: screenCoord[0], y: screenCoord[1] };
     }
 
-    _renderDeckOverlay(layersForDeck, options = {primaryMap: false}) {
+    _renderDeckOverlay(layersForDeck, options = { primaryMap: false }) {
       const {
         mapState,
         mapStyle,
@@ -672,19 +676,19 @@ export default function MapContainerFactory(
         generateDeckGLLayers
       } = this.props;
 
-      const {hoverInfo, editor} = visState;
-      const {primaryMap} = options;
+      const { hoverInfo, editor } = visState;
+      const { primaryMap } = options;
 
       // disable double click zoom when editor is in any draw mode
-      const {mapDraw} = mapControls;
-      const {active: editorMenuActive = false} = mapDraw || {};
+      const { mapDraw } = mapControls;
+      const { active: editorMenuActive = false } = mapDraw || {};
       const isEditorDrawingMode = EditorLayerUtils.isDrawingActive(editorMenuActive, editor.mode);
 
       const viewport = getViewportFromMapState(mapState);
 
       const editorFeatureSelectedIndex = this.selectedPolygonIndexSelector(this.props);
 
-      const {setFeatures, onLayerClick, setSelectedFeature} = visStateActions;
+      const { setFeatures, onLayerClick, setSelectedFeature } = visStateActions;
 
       const generateDeckGLLayersMethod = generateDeckGLLayers ?? computeDeckLayers;
       const deckGlLayers = generateDeckGLLayersMethod(
@@ -701,16 +705,16 @@ export default function MapContainerFactory(
           layersForDeck,
           editorInfo: primaryMap
             ? {
-                editor,
-                editorMenuActive,
-                onSetFeatures: setFeatures,
-                setSelectedFeature,
-                featureCollection: this.featureCollectionSelector(this.props),
-                selectedFeatureIndexes: this.selectedFeatureIndexArraySelector(
-                  editorFeatureSelectedIndex
-                ),
-                viewport
-              }
+              editor,
+              editorMenuActive,
+              onSetFeatures: setFeatures,
+              setSelectedFeature,
+              featureCollection: this.featureCollectionSelector(this.props),
+              selectedFeatureIndexes: this.selectedFeatureIndexArraySelector(
+                editorFeatureSelectedIndex
+              ),
+              viewport
+            }
             : undefined
         },
         {
@@ -722,7 +726,7 @@ export default function MapContainerFactory(
 
       const extraDeckParams: {
         getTooltip?: (info: any) => object | null;
-        getCursor?: ({isDragging: boolean}) => string;
+        getCursor?: ({ isDragging: boolean }) => string;
       } = {};
       if (primaryMap) {
         extraDeckParams.getTooltip = info =>
@@ -732,7 +736,7 @@ export default function MapContainerFactory(
             theme
           });
 
-        extraDeckParams.getCursor = ({isDragging}: {isDragging: boolean}) => {
+        extraDeckParams.getCursor = ({ isDragging }: { isDragging: boolean }) => {
           const editorCursor = EditorLayerUtils.getCursor({
             editorMenuActive,
             editor,
@@ -740,22 +744,22 @@ export default function MapContainerFactory(
           });
           if (editorCursor) return editorCursor;
 
-          if (isDragging) return 'grabbing';
-          if (hoverInfo?.layer) return 'pointer';
-          return 'grab';
+          if (isDragging) return "grabbing";
+          if (hoverInfo?.layer) return "pointer";
+          return "grab";
         };
       }
 
       const views = deckGlProps?.views
         ? deckGlProps?.views()
-        : new MapView({legacyMeterSizes: true});
+        : new MapView({ legacyMeterSizes: true });
 
       return (
         <div
           onMouseMove={
             primaryMap
               ? // @ts-expect-error should be deck viewport
-                event => this.props.visStateActions.onMouseMove(normalizeEvent(event, viewport))
+              event => this.props.visStateActions.onMouseMove(normalizeEvent(event, viewport))
               : undefined
           }
         >
@@ -764,7 +768,7 @@ export default function MapContainerFactory(
             {...deckGlProps}
             views={views}
             layers={deckGlLayers}
-            controller={{doubleClickZoom: !isEditorDrawingMode}}
+            controller={{ doubleClickZoom: !isEditorDrawingMode }}
             viewState={mapState}
             pickingRadius={DEFAULT_PICKING_RADIUS}
             onBeforeRender={this._onBeforeRender}
@@ -830,7 +834,7 @@ export default function MapContainerFactory(
       }
     }
 
-    _onViewportChange = ({viewState}) => {
+    _onViewportChange = ({ viewState }) => {
       if (this.props.isExport) {
         // Image export map shouldn't be interactive (otherwise this callback can
         // lead to inadvertent changes to the state of the main map)
@@ -846,7 +850,7 @@ export default function MapContainerFactory(
     };
 
     _toggleMapControl = panelId => {
-      const {index, uiStateActions} = this.props;
+      const { index, uiStateActions } = this.props;
 
       uiStateActions.toggleMapControl(panelId, Number(index));
     };
@@ -875,7 +879,7 @@ export default function MapContainerFactory(
         containerId = 0
       } = this.props;
 
-      const {layers, datasets, editor, interactionConfig} = visState;
+      const { layers, datasets, editor, interactionConfig } = visState;
 
       const layersToRender = this.layersToRenderSelector(this.props);
       const layersForDeck = this.layersForDeckSelector(this.props);
@@ -884,8 +888,8 @@ export default function MapContainerFactory(
       const currentStyle = mapStyle.mapStyles?.[mapStyle.styleType];
       const mapProps = {
         ...mapState,
-        width: '100%',
-        height: '100%',
+        width: "100%",
+        height: "100%",
         preserveDrawingBuffer: true,
         mapboxApiAccessToken: currentStyle?.accessToken || mapboxApiAccessToken,
         mapboxApiUrl,
@@ -894,6 +898,8 @@ export default function MapContainerFactory(
 
       const hasGeocoderLayer = Boolean(layers.find(l => l.id === GEOCODER_LAYER_ID));
       const isSplit = Boolean(mapState.isSplit);
+
+
 
       return (
         <>
@@ -929,7 +935,7 @@ export default function MapContainerFactory(
             mapHeight={mapState.height}
           />
           {isSplitSelector(this.props) && <Droppable containerId={containerId} />}
-          {/* 
+          {/*
           // @ts-ignore */}
           <MapComponent
             key="bottom"
@@ -938,7 +944,7 @@ export default function MapContainerFactory(
             {...bottomMapContainerProps}
             ref={this._setMapboxMap}
           >
-            {this._renderDeckOverlay(layersForDeck, {primaryMap: true})}
+            {this._renderDeckOverlay(layersForDeck, { primaryMap: true })}
             {this._renderMapboxOverlays()}
             <Editor
               index={index || 0}
@@ -951,16 +957,16 @@ export default function MapContainerFactory(
               onTogglePolygonFilter={visStateActions.setPolygonFilterLayer}
               onSetEditorMode={visStateActions.setEditorMode}
               style={{
-                pointerEvents: 'all',
-                position: 'absolute',
-                display: editor.visible ? 'block' : 'none'
+                pointerEvents: "all",
+                position: "absolute",
+                display: editor.visible ? "block" : "none"
               }}
             />
             {this.props.children}
           </MapComponent>
           {mapStyle.topMapStyle || hasGeocoderLayer ? (
             <div style={MAP_STYLE.top}>
-              {/* 
+              {/*
               // @ts-ignore */}
               <MapComponent
                 key="top"
@@ -968,7 +974,7 @@ export default function MapContainerFactory(
                 mapStyle={mapStyle.topMapStyle}
                 {...topMapContainerProps}
               >
-                {this._renderDeckOverlay({[GEOCODER_LAYER_ID]: hasGeocoderLayer})}
+                {this._renderDeckOverlay({ [GEOCODER_LAYER_ID]: hasGeocoderLayer })}
               </MapComponent>
             </div>
           ) : null}
@@ -985,7 +991,7 @@ export default function MapContainerFactory(
     }
 
     render() {
-      const {visState} = this.props;
+      const { visState } = this.props;
       return (
         <StyledMap
           ref={this._ref}
