@@ -23,7 +23,7 @@
 const en = {
   'modal.loadData.remote': 'Load Map using URL',
   'sampleMapsTab.noData': 'No data ?',
-  'sampleMapsTab.trySampleData': 'Try sample data',
+  'sampleMapsTab.trySampleData': 'use own data',
   'sampleDataViewer.rowCount': ' {rowCount} rows',
   'loadRemoteMap.description': 'Load your map using your custom URL',
   'loadRemoteMap.message':

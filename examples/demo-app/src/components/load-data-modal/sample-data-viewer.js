@@ -18,18 +18,22 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-import React, {useEffect} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import {format} from 'd3-format';
 import {LoadingDialog} from '@kepler.gl/components';
 import {FormattedMessage} from 'react-intl';
+import {ref, getDownloadURL, listAll, uploadBytesResumable} from 'firebase/storage';
+import {db, storage} from '../../utils/firebase';
+import {doc, setDoc, getDocs, where, collection, query, onSnapshot} from 'firebase/firestore';
 
 const numFormat = format(',');
 
 const StyledSampleGallery = styled.div`
   display: flex;
-  justify-content: space-between;
+  gap: 20px;
+  //justify-content: space-between;
   flex-wrap: wrap;
 `;
 
@@ -117,11 +121,131 @@ const SampleMapGallery = ({
   locale,
   loadSampleConfigurations
 }) => {
+  const [storageItems, setStorageItems] = useState([]);
+  // useEffect(() => {
+  //   if (!sampleMaps.length) {
+  //     loadSampleConfigurations();
+  //   }
+  // }, [sampleMaps, loadSampleConfigurations]);
+  const inputRef = useRef(null);
+  const [loading, setLoading] = useState(false);
+  const [samples, setSamples] = useState([]);
+
   useEffect(() => {
-    if (!sampleMaps.length) {
-      loadSampleConfigurations();
+    setLoading(true);
+    try {
+      const q = query(collection(db, 'rawDataStreams'), where('downloadURL', '!=', null));
+      const unsubscribe = onSnapshot(q, snapshot => {
+        const data = snapshot.docs.map(doc => doc.data());
+        setSamples(data);
+        setLoading(false);
+      });
+      return () => unsubscribe();
+    } catch (e) {
+      console.log(e);
+      setLoading(false);
     }
-  }, [sampleMaps, loadSampleConfigurations]);
+  }, []);
+
+  // const fetchData = async () => {
+  //   const q = query(collection(db, 'rawDataStreams'), where('downloadURL', '!=', null));
+  //   const collectionDT = await getDocs(q);
+  //
+  //   const data = collectionDT.docs.map(doc => doc.data());
+  //
+  //   setSamples(data);
+  // };
+
+  const inputHandler = () => {
+    inputRef.current.click();
+  };
+  //
+  const handleCsvChange = e => {
+    e.preventDefault();
+    const reader = new FileReader();
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file !== undefined) {
+      reader.onloadend = () => {
+        csvUploadApi(file, async url => {
+          await csvDataHandle_(file.name, url);
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const csvUploadApi = (imageAsFile, imageDataHandle) => {
+    setLoading(true);
+    const storageRef = ref(storage, `/glCsv/${imageAsFile.name}`);
+    const uploadTask = uploadBytesResumable(storageRef, imageAsFile);
+
+    return uploadTask.on(
+      'state_changed',
+      snapshot => {
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+      },
+      err => {
+        console.log(err);
+        setLoading(false);
+      },
+      () =>
+        getDownloadURL(uploadTask.snapshot.ref)
+          .then(downloadUrl => {
+            imageDataHandle(downloadUrl);
+          })
+          .then(() => {
+            setLoading(false);
+          })
+          .catch(e => {
+            console.log(e);
+            setLoading(false);
+          })
+    );
+  };
+
+  const csvDataHandle_ = (name, downloadURL) => {
+    const today = new Date();
+    return setDoc(doc(db, 'rawDataStreams', today.getTime().toString()), {
+      name,
+      downloadURL,
+      timestamp: today
+    });
+  };
+
+  // const listStorage = async () => {
+  //   console.log('list');
+  //   const listRef = ref(storage, 'gs://eco-web-gis.appspot.com/');
+  //   listAll(listRef)
+  //     .then(res => {
+  //       console.log(res);
+  //       // res.prefixes.forEach(folderRef => {
+  //       //   console.log(folderRef);
+  //       //   // All the prefixes under listRef.
+  //       //   // You may call listAll() recursively on them.
+  //       // });
+  //       setStorageItems(res.items);
+  //     })
+  //     .catch(error => {
+  //       console.log(error);
+  //       // Uh-oh, an error occurred!
+  //     });
+  // };
+
+  const onClickCsvLoader = downloadUrl => {
+    try {
+      onLoadSample({dataUrl: downloadUrl});
+    } catch (e) {
+      console.log(e);
+    }
+    // getDownloadURL(ref(storage, `gs://eco-web-gis.appspot.com/${downloadUrl}`))
+    //   .then(csvUrl => {
+    //     onLoadSample({dataUrl: csvUrl});
+    //   })
+  };
+  if (loading) {
+    return <LoadingDialog size={64} />;
+  }
 
   return (
     <div className="sample-data-modal">
@@ -130,19 +254,57 @@ const SampleMapGallery = ({
       ) : isMapLoading ? (
         <LoadingDialog size={64} />
       ) : (
-        <StyledSampleGallery className="sample-map-gallery">
-          {sampleMaps
-            .filter(sp => sp.visible)
-            .map(sp => (
-              <SampleMap
-                id={sp.id}
-                sample={sp}
-                key={sp.id}
-                onClick={() => onLoadSample(sp)}
-                locale={locale}
-              />
+        <div>
+          {/*{sampleMaps*/}
+          {/*  .filter(sp => sp.visible)*/}
+          {/*  .map(sp => (*/}
+          {/*    <SampleMap*/}
+          {/*      id={sp.id}*/}
+          {/*      sample={sp}*/}
+          {/*      key={sp.id}*/}
+          {/*      onClick={() => onLoadSample(sp)}*/}
+          {/*      locale={locale}*/}
+          {/*    />*/}
+          {/*  ))}*/}
+          <StyledSampleGallery className="sample-map-gallery">
+            {samples.map(item => (
+              <div
+                style={{
+                  cursor: 'pointer',
+                  padding: '20px',
+                  border: '1px solid #ccc',
+                  borderRadius: '5px'
+                }}
+                key={item.downloadURL}
+                onClick={() => onClickCsvLoader(item.downloadURL)}
+              >
+                <p>{item.name}</p>
+              </div>
             ))}
-        </StyledSampleGallery>
+          </StyledSampleGallery>
+          <button
+            style={{
+              marginTop: '20px',
+              cursor: 'pointer',
+              padding: '10px',
+              border: '1px solid #ccc',
+              borderRadius: '10px',
+              backgroundColor: '#E9EAFEFF'
+            }}
+            onClick={() => {
+              inputHandler();
+            }}
+          >
+            Add csv
+          </button>
+          <input
+            onChange={e => handleCsvChange(e)}
+            accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+            ref={inputRef}
+            type="file"
+            style={{display: 'none'}}
+          />
+        </div>
       )}
     </div>
   );
